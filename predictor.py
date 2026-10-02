@@ -210,9 +210,9 @@ def predict_match(
         "away_team": away_team,
         "expected_home_goals": round(expected_home_goals, 2),
         "expected_away_goals": round(expected_away_goals, 2),
-        "home_win": round(float(home_win), 4),
-        "draw": round(float(draw), 4),
-        "away_win": round(float(away_win), 4),
+        "home_win": float(home_win),
+        "draw": float(draw),
+        "away_win": float(away_win),
         "most_likely_score": f"{most_likely_home}:{most_likely_away}",
-        "most_likely_score_probability": round(float(score_matrix.max()), 4),
+        "most_likely_score_probability": float(score_matrix.max()),
     }

@@ -21,6 +21,28 @@ COLUMN_NAMES = {
     "FTAG": "AwayGoals",  # Full Time Away Goals
 }
 
+# Englische Kurznamen der Rohdaten -> offizielle deutsche Vereinsnamen
+TEAM_NAMES = {
+    "Augsburg": "FC Augsburg",
+    "Bayern Munich": "Bayern München",
+    "Dortmund": "Borussia Dortmund",
+    "Ein Frankfurt": "Eintracht Frankfurt",
+    "FC Koln": "1. FC Köln",
+    "Freiburg": "SC Freiburg",
+    "Hamburg": "Hamburger SV",
+    "Heidenheim": "1. FC Heidenheim",
+    "Hoffenheim": "TSG Hoffenheim",
+    "Leverkusen": "Bayer Leverkusen",
+    "M'gladbach": "Borussia Mönchengladbach",
+    "Mainz": "1. FSV Mainz 05",
+    "RB Leipzig": "RB Leipzig",
+    "St Pauli": "FC St. Pauli",
+    "Stuttgart": "VfB Stuttgart",
+    "Union Berlin": "1. FC Union Berlin",
+    "Werder Bremen": "Werder Bremen",
+    "Wolfsburg": "VfL Wolfsburg",
+}
+
 
 def main() -> None:
     """Lädt die Rohdaten, behält nur die benötigten Spalten und speichert sie."""
@@ -30,7 +52,14 @@ def main() -> None:
     matches = raw_matches[list(COLUMN_NAMES)].rename(columns=COLUMN_NAMES)
     matches.insert(0, "Season", SEASON)
 
-    matches.to_csv(OUTPUT_FILE, index=False)
+    unknown_teams = set(matches["HomeTeam"]) - set(TEAM_NAMES)
+    if unknown_teams:
+        raise ValueError(f"Kein deutscher Name hinterlegt für: {sorted(unknown_teams)}")
+
+    matches["HomeTeam"] = matches["HomeTeam"].map(TEAM_NAMES)
+    matches["AwayTeam"] = matches["AwayTeam"].map(TEAM_NAMES)
+
+    matches.to_csv(OUTPUT_FILE, index=False, encoding="utf-8")
     print(f"{len(matches)} Spiele in {OUTPUT_FILE} gespeichert.")
 
 

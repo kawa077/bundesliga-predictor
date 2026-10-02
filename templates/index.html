@@ -1,1 +1,82 @@
-<!-- Wird in Schritt 8 umgesetzt. -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bundesliga Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>Bundesliga Predictor</h1>
+            <p class="subtitle">Poisson-Modell auf Basis der Saison 2025/26</p>
+        </header>
+
+        <form id="prediction-form" class="card">
+            <div class="team-select">
+                <label for="home-team">Heimteam</label>
+                <select id="home-team">
+                    {% for team in teams %}
+                    <option value="{{ team }}" {% if team == "Bayern München" %}selected{% endif %}>{{ team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <span class="versus">vs.</span>
+
+            <div class="team-select">
+                <label for="away-team">Auswärtsteam</label>
+                <select id="away-team">
+                    {% for team in teams %}
+                    <option value="{{ team }}" {% if team == "Borussia Dortmund" %}selected{% endif %}>{{ team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">Vorhersage berechnen</button>
+        </form>
+
+        <p id="error-message" class="error" hidden></p>
+
+        <section id="result" class="card" hidden>
+            <h2 class="section-title">Erwartete Tore</h2>
+            <div class="expected-goals">
+                <div>
+                    <span id="home-name" class="team-name"></span>
+                    <span id="home-goals" class="goals"></span>
+                </div>
+                <div>
+                    <span id="away-name" class="team-name"></span>
+                    <span id="away-goals" class="goals"></span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Wahrscheinlichkeiten</h2>
+            <div class="probability">
+                <span class="label">Heimsieg</span>
+                <div class="bar"><div id="home-win-bar" class="bar-fill home"></div></div>
+                <span id="home-win" class="value"></span>
+            </div>
+            <div class="probability">
+                <span class="label">Remis</span>
+                <div class="bar"><div id="draw-bar" class="bar-fill draw"></div></div>
+                <span id="draw" class="value"></span>
+            </div>
+            <div class="probability">
+                <span class="label">Auswärtssieg</span>
+                <div class="bar"><div id="away-win-bar" class="bar-fill away"></div></div>
+                <span id="away-win" class="value"></span>
+            </div>
+
+            <h2 class="section-title">Wahrscheinlichstes Ergebnis</h2>
+            <p class="score">
+                <span id="most-likely-score"></span>
+                <span id="most-likely-probability" class="score-probability"></span>
+            </p>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
