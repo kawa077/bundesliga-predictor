@@ -53,8 +53,37 @@ def get_teams(matches: pd.DataFrame) -> list[str]:
     return sorted(matches["HomeTeam"].unique())
 
 
+def calculate_team_stats(matches: pd.DataFrame) -> pd.DataFrame:
+    """Berechnet für jedes Team Spiele, Tore und Gegentore – gesamt und pro Spiel.
+
+    Jedes Spiel taucht zweimal auf: einmal aus Sicht des Heimteams
+    und einmal aus Sicht des Auswärtsteams. Beide Sichten werden addiert.
+    """
+    # Sicht der Heimteams: eigene Tore = HomeGoals, Gegentore = AwayGoals
+    home_stats = matches.groupby("HomeTeam").agg(
+        games=("HomeGoals", "count"),
+        goals_scored=("HomeGoals", "sum"),
+        goals_conceded=("AwayGoals", "sum"),
+    )
+
+    # Sicht der Auswärtsteams: eigene Tore = AwayGoals, Gegentore = HomeGoals
+    away_stats = matches.groupby("AwayTeam").agg(
+        games=("AwayGoals", "count"),
+        goals_scored=("AwayGoals", "sum"),
+        goals_conceded=("HomeGoals", "sum"),
+    )
+
+    # Zeilen mit gleichem Teamnamen werden addiert (Heim + Auswärts)
+    team_stats = home_stats.add(away_stats)
+    team_stats.index.name = "Team"
+
+    team_stats["goals_scored_per_game"] = team_stats["goals_scored"] / team_stats["games"]
+    team_stats["goals_conceded_per_game"] = team_stats["goals_conceded"] / team_stats["games"]
+
+    return team_stats
+
+
 # Folgt in den nächsten Schritten:
-#   calculate_team_stats()     -> Tore / Gegentore pro Spiel je Team        (Schritt 3)
 #   calculate_team_strength()  -> Angriffsstärke und Abwehrschwäche         (Schritt 4)
 #   calculate_expected_goals() -> λ für Heim- und Auswärtsteam              (Schritt 5)
 #   poisson_probability()      -> P(X = k)                                  (Schritt 6)
