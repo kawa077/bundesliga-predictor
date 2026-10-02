@@ -104,7 +104,41 @@ def calculate_team_strength(team_stats: pd.DataFrame) -> pd.DataFrame:
     return team_strength
 
 
+def calculate_expected_goals(
+    matches: pd.DataFrame,
+    team_strength: pd.DataFrame,
+    home_team: str,
+    away_team: str,
+) -> tuple[float, float]:
+    """Berechnet die erwarteten Tore (λ) für Heim- und Auswärtsteam.
+
+    erwartete Heimtore     = Liga-Heimtore pro Spiel     × Angriff Heim × Abwehrschwäche Auswärts
+    erwartete Auswärtstore = Liga-Auswärtstore pro Spiel × Angriff Auswärts × Abwehrschwäche Heim
+    """
+    if home_team not in team_strength.index:
+        raise ValueError(f"Unbekanntes Heimteam: {home_team}")
+    if away_team not in team_strength.index:
+        raise ValueError(f"Unbekanntes Auswärtsteam: {away_team}")
+    if home_team == away_team:
+        raise ValueError("Heim- und Auswärtsteam müssen unterschiedlich sein.")
+
+    # Getrennte Durchschnitte, damit der Heimvorteil im Modell enthalten ist
+    league_home_goals_avg = matches["HomeGoals"].mean()
+    league_away_goals_avg = matches["AwayGoals"].mean()
+
+    home = team_strength.loc[home_team]
+    away = team_strength.loc[away_team]
+
+    expected_home_goals = (
+        league_home_goals_avg * home["attack_strength"] * away["defense_weakness"]
+    )
+    expected_away_goals = (
+        league_away_goals_avg * away["attack_strength"] * home["defense_weakness"]
+    )
+
+    return float(expected_home_goals), float(expected_away_goals)
+
+
 # Folgt in den nächsten Schritten:
-#   calculate_expected_goals() -> λ für Heim- und Auswärtsteam              (Schritt 5)
 #   poisson_probability()      -> P(X = k)                                  (Schritt 6)
 #   predict_match()            -> Heimsieg / Remis / Auswärtssieg           (Schritt 7)
