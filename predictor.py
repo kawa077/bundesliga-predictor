@@ -170,5 +170,49 @@ def calculate_goal_probabilities(expected_goals: float) -> np.ndarray:
     )
 
 
-# Folgt in den nächsten Schritten:
-#   predict_match()            -> Heimsieg / Remis / Auswärtssieg           (Schritt 7)
+def predict_match(
+    matches: pd.DataFrame,
+    team_strength: pd.DataFrame,
+    home_team: str,
+    away_team: str,
+) -> dict:
+    """Sagt ein Spiel vorher: Heimsieg, Remis, Auswärtssieg und wahrscheinlichstes Ergebnis.
+
+    Kern ist die Ergebnis-Matrix: Zeile = Heimtore, Spalte = Auswärtstore.
+    Feld [2, 1] enthält z. B. die Wahrscheinlichkeit für ein 2:1.
+    """
+    expected_home_goals, expected_away_goals = calculate_expected_goals(
+        matches, team_strength, home_team, away_team
+    )
+
+    home_goal_probs = calculate_goal_probabilities(expected_home_goals)
+    away_goal_probs = calculate_goal_probabilities(expected_away_goals)
+
+    # P(Heim = h und Auswärts = a) = P(Heim = h) × P(Auswärts = a)
+    score_matrix = np.outer(home_goal_probs, away_goal_probs)
+
+    # Ergebnisse mit mehr als MAX_GOALS Toren fehlen; Normieren sorgt für Summe = 1
+    score_matrix = score_matrix / score_matrix.sum()
+
+    # Unter der Diagonale: Heimtore > Auswärtstore -> Heimsieg
+    home_win = np.tril(score_matrix, k=-1).sum()
+    # Diagonale: gleich viele Tore -> Remis
+    draw = np.trace(score_matrix)
+    # Über der Diagonale: Auswärtstore > Heimtore -> Auswärtssieg
+    away_win = np.triu(score_matrix, k=1).sum()
+
+    most_likely_home, most_likely_away = np.unravel_index(
+        score_matrix.argmax(), score_matrix.shape
+    )
+
+    return {
+        "home_team": home_team,
+        "away_team": away_team,
+        "expected_home_goals": round(expected_home_goals, 2),
+        "expected_away_goals": round(expected_away_goals, 2),
+        "home_win": round(float(home_win), 4),
+        "draw": round(float(draw), 4),
+        "away_win": round(float(away_win), 4),
+        "most_likely_score": f"{most_likely_home}:{most_likely_away}",
+        "most_likely_score_probability": round(float(score_matrix.max()), 4),
+    }
