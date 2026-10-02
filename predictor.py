@@ -83,8 +83,28 @@ def calculate_team_stats(matches: pd.DataFrame) -> pd.DataFrame:
     return team_stats
 
 
+def calculate_team_strength(team_stats: pd.DataFrame) -> pd.DataFrame:
+    """Berechnet Angriffsstärke und Abwehrschwäche relativ zum Liga-Durchschnitt.
+
+    attack_strength  > 1: das Team schießt mehr Tore als der Durchschnitt (gut)
+    defense_weakness > 1: das Team kassiert mehr Tore als der Durchschnitt (schlecht)
+    Ein Wert von genau 1 bedeutet: Liga-Durchschnitt.
+    """
+    league_goals_per_game = team_stats["goals_scored"].sum() / team_stats["games"].sum()
+    league_conceded_per_game = team_stats["goals_conceded"].sum() / team_stats["games"].sum()
+
+    team_strength = pd.DataFrame(index=team_stats.index)
+    team_strength["attack_strength"] = (
+        team_stats["goals_scored_per_game"] / league_goals_per_game
+    )
+    team_strength["defense_weakness"] = (
+        team_stats["goals_conceded_per_game"] / league_conceded_per_game
+    )
+
+    return team_strength
+
+
 # Folgt in den nächsten Schritten:
-#   calculate_team_strength()  -> Angriffsstärke und Abwehrschwäche         (Schritt 4)
 #   calculate_expected_goals() -> λ für Heim- und Auswärtsteam              (Schritt 5)
 #   poisson_probability()      -> P(X = k)                                  (Schritt 6)
 #   predict_match()            -> Heimsieg / Remis / Auswärtssieg           (Schritt 7)
