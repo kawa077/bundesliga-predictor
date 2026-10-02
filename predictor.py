@@ -1,8 +1,14 @@
 """Das Poisson-Modell: Daten einlesen, Teamstärken und Wahrscheinlichkeiten berechnen."""
 
+import math
+
+import numpy as np
 import pandas as pd
 
 REQUIRED_COLUMNS = ["Season", "HomeTeam", "AwayTeam", "HomeGoals", "AwayGoals"]
+
+# Höchste Torzahl pro Team, die das Modell betrachtet (0 bis 6 Tore)
+MAX_GOALS = 6
 
 # 18 Teams, jedes spielt gegen jedes andere zweimal: 18 * 17 = 306
 NUMBER_OF_TEAMS = 18
@@ -139,6 +145,30 @@ def calculate_expected_goals(
     return float(expected_home_goals), float(expected_away_goals)
 
 
+def poisson_probability(goals: int, expected_goals: float) -> float:
+    """Wahrscheinlichkeit, dass ein Team genau `goals` Tore schießt.
+
+    Poisson-Formel: P(X = k) = e^(-λ) × λ^k / k!
+    mit k = goals und λ = expected_goals.
+    """
+    if goals < 0:
+        raise ValueError("Die Anzahl der Tore kann nicht negativ sein.")
+    if expected_goals < 0:
+        raise ValueError("Die erwarteten Tore können nicht negativ sein.")
+
+    return math.exp(-expected_goals) * expected_goals**goals / math.factorial(goals)
+
+
+def calculate_goal_probabilities(expected_goals: float) -> np.ndarray:
+    """Wahrscheinlichkeiten für 0, 1, 2, ..., MAX_GOALS Tore als NumPy-Array.
+
+    Beispiel für λ = 2.44: [0.087, 0.213, 0.259, ...]
+    Position 0 = P(0 Tore), Position 1 = P(1 Tor), usw.
+    """
+    return np.array(
+        [poisson_probability(goals, expected_goals) for goals in range(MAX_GOALS + 1)]
+    )
+
+
 # Folgt in den nächsten Schritten:
-#   poisson_probability()      -> P(X = k)                                  (Schritt 6)
 #   predict_match()            -> Heimsieg / Remis / Auswärtssieg           (Schritt 7)
