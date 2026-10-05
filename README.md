@@ -159,7 +159,7 @@ away_win = np.triu(score_matrix, k=1).sum()    # über der Diagonale
 Voraussetzung: Python 3.10 oder neuer.
 
 ```bash
-git clone https://github.com/<dein-github-name>/bundesliga-predictor.git
+git clone https://github.com/kawa077/bundesliga-predictor.git
 cd bundesliga-predictor
 python -m venv .venv
 ```
