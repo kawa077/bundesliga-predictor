@@ -31,11 +31,14 @@ def predict():
 
     Erwartet: {"home_team": "...", "away_team": "..."}
     """
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Die Anfrage muss ein JSON-Objekt sein."}), 400
+
     home_team = data.get("home_team")
     away_team = data.get("away_team")
 
-    if not home_team or not away_team:
+    if not isinstance(home_team, str) or not isinstance(away_team, str):
         return jsonify({"error": "Bitte Heim- und Auswärtsteam angeben."}), 400
 
     try:
